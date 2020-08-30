@@ -1,0 +1,102 @@
+[
+  {
+    "gemeente": "Amsterdam",
+    "provincie": "Noord-Holland",
+    "inwoners": 805000
+  },
+  {
+    "gemeente": "Arnhem",
+    "provincie": "Gelderland",
+    "inwoners": 151000
+  },  
+  {
+    "gemeente": "Rotterdam",
+    "provincie": "Zuid-Holland",
+    "inwoners": 615000
+  },
+  {
+    "gemeente": "Den Haag",
+    "provincie": "Zuid-Holland",
+    "inwoners": 507000
+  },
+  {
+    "gemeente": "Utrecht",
+    "provincie": "Utrecht",
+    "inwoners": 324000
+  },
+  {
+    "gemeente": "Eindhoven",
+    "provincie": "Noord-Brabant",
+    "inwoners": 220000
+  },
+  {
+    "gemeente": "Tilburg",
+    "provincie": "Noord-Brabant",
+    "inwoners": 209000
+  },
+  {
+    "gemeente": "Groningen",
+    "provincie": "Groningen",
+    "inwoners": 196000
+  },
+  {
+    "gemeente": "Almere",
+    "provincie": "Flevoland",
+    "inwoners": 195000
+  },
+  {
+    "gemeente": "Breda",
+    "provincie": "Noord-Brabant",
+    "inwoners": 179000
+  },
+  {
+    "gemeente": "Nijmegen",
+    "provincie": "Gelderland",
+    "inwoners": 166000
+  },
+  {
+    "gemeente": "Enschede",
+    "provincie": "Overijssel",
+    "inwoners": 158000
+  },
+  {
+    "gemeente": "Apeldoorn",
+    "provincie": "Gelderland",
+    "inwoners": 158000
+  },
+  {
+    "gemeente": "Den Bosch",
+    "provincie": "Noord-Brabant",
+    "inwoners": 143000
+  },
+  {
+    "gemeente": "Zoetermeer",
+    "provincie": "Zuid-Holland",
+    "inwoners": 124000
+  },  
+  {
+    "gemeente": "Haarlem",
+    "provincie": "Noord-Holland",
+    "inwoners": 155000
+  },
+  {
+    "gemeente": "Amersfoort",
+    "provincie": "Utrecht",
+    "inwoners": 150000
+  },
+  {
+    "gemeente": "Zaanstad",
+    "provincie": "Noord-Holland",
+    "inwoners": 150000
+  },
+  {
+    "gemeente": "Haarlemmermeer",
+    "provincie": "Noord-Holland",
+    "inwoners": 144000
+  },
+  {
+    "gemeente": "Zwolle",
+    "provincie": "Overijssel",
+    "inwoners": 123000
+  }
+]
