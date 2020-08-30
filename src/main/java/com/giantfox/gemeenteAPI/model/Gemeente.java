@@ -10,10 +10,13 @@ public class Gemeente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String naam;
-    private String provincie;
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "provincie_id", nullable = false)
+    private Provincie provincie;
     private long inwoners;
 
-    public Gemeente(String naam, String provincie, long inwoners) {
+    public Gemeente(String naam, Provincie provincie, long inwoners) {
         this.naam = naam;
         this.provincie = provincie;
         this.inwoners = inwoners;
@@ -29,11 +32,11 @@ public class Gemeente {
         this.naam = naam;
     }
 
-    public String getProvincie() {
+    public Provincie getProvincie() {
         return provincie;
     }
 
-    public void setProvincie(String provincie) {
+    public void setProvincie(Provincie provincie) {
         this.provincie = provincie;
     }
 

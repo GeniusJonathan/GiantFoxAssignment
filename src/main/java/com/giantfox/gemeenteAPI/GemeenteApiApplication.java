@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.*;
 import java.util.Iterator;
+import java.util.List;
 
 @SpringBootApplication
 public class GemeenteApiApplication implements CommandLineRunner {
@@ -31,12 +32,18 @@ public class GemeenteApiApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		fillGemeenten();
+		cleanDatabase();
 		fillProvincies();
+		fillGemeenten();
+	}
+
+	private void cleanDatabase() {
+		gemeenteRepository.deleteAllInBatch();
+		provincieRepository.deleteAllInBatch();
 	}
 
 	private void fillGemeenten() {
-		gemeenteRepository.deleteAllInBatch();
+		List<Provincie> provincies = provincieRepository.findAll();
 
 		JSONParser parser = new JSONParser();
 		File file = new File(GemeenteApiApplication.class.getClassLoader().getResource("data/gemeenten.json").getFile());
@@ -48,7 +55,8 @@ public class GemeenteApiApplication implements CommandLineRunner {
 			while (iterator.hasNext()) {
 				JSONObject obj = iterator.next();
 				String naam = (String) obj.get("gemeente");
-				String provincie = (String) obj.get("provincie");
+				String prov = (String) obj.get("provincie");
+				Provincie provincie = provincies.stream().filter(x -> x.getNaam().equalsIgnoreCase(prov)).findFirst().orElse(null);
 				long inwonders = (Long) obj.get("inwoners");
 				gemeenteRepository.save(new Gemeente(naam, provincie, inwonders));
 			}
@@ -60,7 +68,7 @@ public class GemeenteApiApplication implements CommandLineRunner {
 	}
 
 	private void fillProvincies() {
-		provincieRepository.deleteAllInBatch();
+
 		File file = new File(GemeenteApiApplication.class.getClassLoader().getResource("data/provincies.csv").getFile());
 		String line = "";
 		String cvsSplitBy = ",";
@@ -70,14 +78,12 @@ public class GemeenteApiApplication implements CommandLineRunner {
 			line = br.readLine();
 			String[] header = line.split(cvsSplitBy);
 
-			System.out.println(header[0] + "\t" + header[1] + "\t" + header[2]);
 			while ((line = br.readLine()) != null) {
 
 				// use comma as separator
 				String[] provincie = line.split(cvsSplitBy);
 				provincieRepository.save(new Provincie(provincie[0], provincie[1], Long. parseLong(provincie[2])));
 			}
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
