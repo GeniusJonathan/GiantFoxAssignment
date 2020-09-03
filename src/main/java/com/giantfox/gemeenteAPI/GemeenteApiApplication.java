@@ -1,5 +1,6 @@
 package com.giantfox.gemeenteAPI;
 
+import com.giantfox.gemeenteAPI.dao.FakeGemeenteDAO;
 import com.giantfox.gemeenteAPI.model.Gemeente;
 import com.giantfox.gemeenteAPI.model.Provincie;
 import com.giantfox.gemeenteAPI.repository.GemeenteRepository;
@@ -14,79 +15,126 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @SpringBootApplication
 public class GemeenteApiApplication implements CommandLineRunner {
 
-	@Autowired
-	private GemeenteRepository gemeenteRepository;
+    @Autowired
+    private GemeenteRepository gemeenteRepository;
 
-	@Autowired
-	private ProvincieRepository provincieRepository;
+    @Autowired
+    private FakeGemeenteDAO fakeGemeenteDAO;
 
-	public static void main(String[] args) {
-		SpringApplication.run(GemeenteApiApplication.class, args);
-	}
+    @Autowired
+    private ProvincieRepository provincieRepository;
 
-	@Override
-	public void run(String... args) throws Exception {
-		cleanDatabase();
-		fillProvincies();
-		fillGemeenten();
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(GemeenteApiApplication.class, args);
+    }
 
-	private void cleanDatabase() {
-		gemeenteRepository.deleteAllInBatch();
-		provincieRepository.deleteAllInBatch();
-	}
+    @Override
+    public void run(String... args) throws Exception {
+        cleanDatabase();
+        fillProvinciesInMemory();
+        fillGemeentenInMemory();
+//        fillProvincies();
+//        fillGemeenten();
+    }
 
-	private void fillGemeenten() {
-		List<Provincie> provincies = provincieRepository.findAll();
+    private List<Provincie> fillProvinciesInMemory() {
+        List<Provincie> provincies = new ArrayList<>();
 
-		JSONParser parser = new JSONParser();
-		File file = new File(GemeenteApiApplication.class.getClassLoader().getResource("data/gemeenten.json").getFile());
+        File file = new File(GemeenteApiApplication.class.getClassLoader().getResource("data/provincies.csv").getFile());
+        String line = "";
+        String cvsSplitBy = ",";
 
-		try (Reader reader = new FileReader(file)) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
-			JSONArray arr = (JSONArray) parser.parse(reader);
-			Iterator<JSONObject> iterator = arr.iterator();
-			while (iterator.hasNext()) {
-				JSONObject obj = iterator.next();
-				String naam = (String) obj.get("gemeente");
-				String prov = (String) obj.get("provincie");
-				Provincie provincie = provincies.stream().filter(x -> x.getNaam().equalsIgnoreCase(prov)).findFirst().orElse(null);
-				long inwonders = (Long) obj.get("inwoners");
-				gemeenteRepository.save(new Gemeente(naam, provincie, inwonders));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-	}
+            line = br.readLine();
+            String[] header = line.split(cvsSplitBy);
 
-	private void fillProvincies() {
+            while ((line = br.readLine()) != null) {
 
-		File file = new File(GemeenteApiApplication.class.getClassLoader().getResource("data/provincies.csv").getFile());
-		String line = "";
-		String cvsSplitBy = ",";
+                // use comma as separator
+                String[] provincie = line.split(cvsSplitBy);
+                provincies.add(new Provincie(provincie[0], provincie[1], Long.parseLong(provincie[2])));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        return provincies;
+    }
 
-			line = br.readLine();
-			String[] header = line.split(cvsSplitBy);
+    private List<Gemeente> fillGemeentenInMemory() {
+        List<Provincie> provincies = fillProvinciesInMemory();
+        List<Gemeente> gemeenten = new ArrayList<>();
 
-			while ((line = br.readLine()) != null) {
+        AtomicLong nextId = new AtomicLong();
 
-				// use comma as separator
-				String[] provincie = line.split(cvsSplitBy);
-				provincieRepository.save(new Provincie(provincie[0], provincie[1], Long. parseLong(provincie[2])));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+        JSONParser parser = new JSONParser();
+        File file = new File(GemeenteApiApplication.class.getClassLoader().getResource("data/gemeenten.json").getFile());
+
+        try (Reader reader = new FileReader(file)) {
+
+            JSONArray arr = (JSONArray) parser.parse(reader);
+            Iterator<JSONObject> iterator = arr.iterator();
+            while (iterator.hasNext()) {
+                JSONObject obj = iterator.next();
+                String naam = (String) obj.get("gemeente");
+                String prov = (String) obj.get("provincie");
+                Provincie provincie = provincies.stream().filter(x -> x.getNaam().equalsIgnoreCase(prov)).findFirst().orElse(null);
+                long inwonders = (Long) obj.get("inwoners");
+
+                Gemeente gemeente = new Gemeente(naam, provincie, inwonders);
+                gemeente.setId(nextId.getAndIncrement());
+
+                fakeGemeenteDAO.insertGemeente(gemeente);
+                gemeenten.add(gemeente);
+
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return gemeenten;
+    }
+
+    private void cleanDatabase() {
+        gemeenteRepository.deleteAllInBatch();
+        provincieRepository.deleteAllInBatch();
+    }
+
+    private void fillGemeenten() {
+
+
+        List<Gemeente> gemeenteList = fillGemeentenInMemory();
+        List<Provincie> provincieList = fillProvinciesInMemory();
+
+        for (Gemeente gemeente : gemeenteList) {
+            Provincie provincie = provincieList.stream().filter(x -> x.getNaam().equalsIgnoreCase(gemeente.getProvincie().getNaam())).findFirst().orElse(null);
+            gemeenteRepository.save(new Gemeente(gemeente.getNaam(), provincie, gemeente.getInwoners()));
+        }
+
+
+    }
+
+    private void fillProvincies() {
+        List<Provincie> provincies = fillProvinciesInMemory();
+
+        provincies.stream().forEach(x -> {
+            provincieRepository.save(new Provincie(x.getNaam(), x.getHoofdstad(), x.getOppervlaktkm2()));
+        });
+
+
+    }
 
 }

@@ -1,11 +1,11 @@
 package com.giantfox.gemeenteAPI.service;
 
 
+import com.giantfox.gemeenteAPI.dao.GemeenteDAO;
 import com.giantfox.gemeenteAPI.exception.ResourceNotFoundException;
 import com.giantfox.gemeenteAPI.model.Gemeente;
-import com.giantfox.gemeenteAPI.repository.GemeenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,33 +14,19 @@ import java.util.List;
 public class GemeentenService {
 
     @Autowired
-    private GemeenteRepository gemeenteRepository;
+    @Qualifier("FakeData")
+    private GemeenteDAO gemeenteDAO;
 
-    public List<Gemeente> getAllGemeeenten(String sortBy, String order) {
-        if (sortBy == null || order == null) return gemeenteRepository.findAll();
+    public List<Gemeente> getAllGemeenten(String sortBy, String order) {
+        if (sortBy == null || order == null) return gemeenteDAO.getAllGemeenten();
 
-        return gemeenteRepository.findAll(createSorting(sortBy, order));
+        return gemeenteDAO.getAllGemeentenSorted(sortBy, order);
     }
 
     public Gemeente findGemeenteById(Long gemeenteId) {
-        return gemeenteRepository.findById(gemeenteId)
+        return gemeenteDAO.getGemeenteById(gemeenteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Gemeente", "id", gemeenteId));
     }
 
-    private Sort createSorting(String sortBy, String order){
-        if( !sortBy.equalsIgnoreCase("inwoners") && !sortBy.equalsIgnoreCase("naam")) {
-            return Sort.by("naam").ascending();
-        }
 
-        if (order.equalsIgnoreCase("desc")) {
-            return Sort.by(sortBy).descending();
-        }
-
-        if (order.equalsIgnoreCase("asc")) {
-            return Sort.by(sortBy).ascending();
-        }
-
-        return Sort.by("naam").ascending();
-
-    }
 }

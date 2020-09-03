@@ -20,7 +20,7 @@ public class GemeenteController {
             @RequestParam(value = "order", required = false) String order)
     {
 
-        return gemeentenService.getAllGemeeenten(sortBy, order);
+        return gemeentenService.getAllGemeenten(sortBy, order);
     }
 
     @GetMapping("/{id}")
